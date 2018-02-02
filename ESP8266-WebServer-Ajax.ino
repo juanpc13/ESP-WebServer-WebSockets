@@ -6,8 +6,8 @@
 #include "JavaScript.h"
 
 ESP8266WebServer server(80);
-const char* ssid = "........";
-const char* password = "........";
+const char* ssid = "TURBONETT_1C4362";
+const char* password = "--------";
 
 void setup() {
   Serial.begin(115200);
@@ -22,6 +22,7 @@ void setup() {
   Serial.println(WiFi.localIP());
   server.on("/", handleRoot);
   server.on("/js", handleJS);
+  server.on("/css", handleCSS);
   server.on("/data", handleJsonData);
   server.begin();
   
@@ -41,6 +42,11 @@ void handleJS(){
   server.send(200, "text/javascript", s); //Send page
 }
 
+void handleCSS(){
+  String s = MAIN_CSS; //Read JS contents
+  server.send(200, "text/css", s); //Send page
+}
+
 void handleJsonData(){
   String s = "";
   StaticJsonBuffer<200> jsonBuffer;
@@ -49,6 +55,8 @@ void handleJsonData(){
   root["time"] = millis();
   root.printTo(s);
   
+  server.sendHeader("Connection", "close");
+  server.sendHeader("Access-Control-Allow-Origin", "*");
   server.send(200, "application/json", s); //Send json page
 }
 
