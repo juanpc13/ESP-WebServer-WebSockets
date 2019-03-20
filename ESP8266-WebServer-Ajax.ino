@@ -6,13 +6,13 @@
 #include "JavaScript.h"
 
 ESP8266WebServer server(80);
-const char* ssid = "TURBONETT_1C4362";
+const char* ssid = "TURBONETT";
 const char* password = "--------";
 
 void setup() {
   Serial.begin(115200);
   WiFi.begin(ssid, password);
-  while(WiFi.status() != WL_CONNECTED){
+  while (WiFi.status() != WL_CONNECTED) {
     Serial.print(".");
     delay(100);
   }
@@ -25,7 +25,7 @@ void setup() {
   server.on("/css", handleCSS);
   server.on("/data", handleJsonData);
   server.begin();
-  
+
 }
 
 void loop() {
@@ -33,28 +33,29 @@ void loop() {
 }
 
 void handleRoot() {
- String s = MAIN_HTML; //Read HTML contents
- server.send(200, "text/html", s); //Send web page
+  String s = MAIN_HTML; //Read HTML contents
+  server.send(200, "text/html", s); //Send web page
 }
 
-void handleJS(){
+void handleJS() {
   String s = MAIN_JS; //Read JS contents
   server.send(200, "text/javascript", s); //Send page
 }
 
-void handleCSS(){
+void handleCSS() {
   String s = MAIN_CSS; //Read JS contents
   server.send(200, "text/css", s); //Send page
 }
 
-void handleJsonData(){
+void handleJsonData() {
   String s = "";
-  StaticJsonBuffer<200> jsonBuffer;
-  JsonObject& root = jsonBuffer.createObject();
-  
+  DynamicJsonDocument doc(1024);
+  JsonObject root = doc.to<JsonObject>();
+
   root["time"] = millis();
-  root.printTo(s);
-  
+
+  serializeJson(doc, s);
+
   server.sendHeader("Connection", "close");
   server.sendHeader("Access-Control-Allow-Origin", "*");
   server.send(200, "application/json", s); //Send json page
