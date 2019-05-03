@@ -10,6 +10,6 @@ function loadTime() {
             document.getElementById("luz").innerHTML = jsonData.luz;
         }
     };
-    xhttp.open("GET", "data", true);
+    xhttp.open("GET", "status", true);
     xhttp.send();
 }
