@@ -6,20 +6,23 @@
 #include "JavaScript.h"
 
 ESP8266WebServer server(80);
-const char* ssid = "TURBONETT";
-const char* password = "--------";
+const char* ssid = "TURBONETT_1DFD27";
+const char* password = "";
 
 void setup() {
+  //Puerto Serial
   Serial.begin(115200);
+  Serial.println();
+  //Conectar Wifi
+  WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     Serial.print(".");
     delay(100);
   }
-  WiFi.mode(WIFI_STA);
-  Serial.println("");
-  Serial.print("IP : ");
-  Serial.println(WiFi.localIP());
+  //Mostrar IP
+  Serial.print("IP : ");Serial.println(WiFi.localIP());
+  //Eventos
   server.on("/", handleRoot);
   server.on("/js", handleJS);
   server.on("/css", handleCSS);
