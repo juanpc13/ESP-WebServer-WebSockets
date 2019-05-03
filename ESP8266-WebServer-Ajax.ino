@@ -1,66 +1,62 @@
 #include <ESP8266WiFi.h>
-#include <ESP8266WebServer.h>
 #include <ArduinoJson.h>
-#include "CSS.h"
-#include "HTML.h"
-#include "JavaScript.h"
+#include <FS.h>
+#include <ESPAsyncTCP.h>
+#include <ESPAsyncWebServer.h>
 
-ESP8266WebServer server(80);
-const char* ssid = "TURBONETT_1DFD27";
-const char* password = "";
+AsyncWebServer server(80);
+const char *ssid = "TURBONETT_1DFD27";
+const char *password = "57E04D255E";
 
-void setup() {
+void setup(){
   //Puerto Serial
   Serial.begin(115200);
   Serial.println();
+  //Memoria SPIFFS
+  SPIFFS.begin();
   //Conectar Wifi
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
+  while (WiFi.status() != WL_CONNECTED){
     Serial.print(".");
     delay(100);
   }
   //Mostrar IP
-  Serial.print("IP : ");Serial.println(WiFi.localIP());
+  Serial.print("IP : ");
+  Serial.println(WiFi.localIP());
   //Eventos
-  server.on("/", handleRoot);
-  server.on("/js", handleJS);
-  server.on("/css", handleCSS);
-  server.on("/data", handleJsonData);
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
+    request->send(SPIFFS, "/index.html", "text/html");
+  });
+
+  server.on("/main.css", HTTP_GET, [](AsyncWebServerRequest *request) {
+    request->send(SPIFFS, "/main.css", "text/css");
+  });
+
+  server.on("/main.js", HTTP_GET, [](AsyncWebServerRequest *request) {
+    request->send(SPIFFS, "/main.js", "text/javascript");
+  });
+
+  server.on("/data", HTTP_GET, [](AsyncWebServerRequest *request) {
+    AsyncResponseStream *response = request->beginResponseStream("application/json");
+    response->addHeader("Connection", "close");
+    response->addHeader("Access-Control-Allow-Origin", "*");
+    DynamicJsonDocument doc(1024);
+    JsonObject root = doc.to<JsonObject>();
+    root["luz"] = analogRead(A0);
+    serializeJson(doc, *response);
+    request->send(response);
+  });
+
+  server.onNotFound([](AsyncWebServerRequest *request) {
+    if (request->method() == HTTP_OPTIONS){
+      request->send(200);
+    }else{
+      request->send(404);
+    }
+  });
+
   server.begin();
-
 }
 
-void loop() {
-  server.handleClient();
-}
-
-void handleRoot() {
-  String s = MAIN_HTML; //Read HTML contents
-  server.send(200, "text/html", s); //Send web page
-}
-
-void handleJS() {
-  String s = MAIN_JS; //Read JS contents
-  server.send(200, "text/javascript", s); //Send page
-}
-
-void handleCSS() {
-  String s = MAIN_CSS; //Read JS contents
-  server.send(200, "text/css", s); //Send page
-}
-
-void handleJsonData() {
-  String s = "";
-  DynamicJsonDocument doc(1024);
-  JsonObject root = doc.to<JsonObject>();
-
-  root["time"] = millis();
-
-  serializeJson(doc, s);
-
-  server.sendHeader("Connection", "close");
-  server.sendHeader("Access-Control-Allow-Origin", "*");
-  server.send(200, "application/json", s); //Send json page
-}
-
+void loop(){}
