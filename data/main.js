@@ -1,5 +1,5 @@
 window.onload = function() {
-    window.setInterval(loadTime, 100);
+    window.setInterval(loadTime, 500);
 };
 
 function loadTime() {
@@ -7,7 +7,7 @@ function loadTime() {
     xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
             var jsonData = JSON.parse(this.responseText);
-            document.getElementById("luz").innerHTML = jsonData.luz;
+            document.getElementById("millis").innerHTML = jsonData.millis;
         }
     };
     xhttp.open("GET", "status", true);
